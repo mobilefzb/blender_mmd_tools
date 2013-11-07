@@ -164,6 +164,7 @@ def import_pmd(**kwargs):
         pmx_mat.diffuse = mat.diffuse
         pmx_mat.specular = mat.specular + [mat.specular_intensity]
         pmx_mat.ambient = mat.ambient
+        pmx_mat.is_double_sided = (mat.diffuse[3] < 1.0)
         pmx_mat.enabled_self_shadow = True # pmd doesn't support this
         pmx_mat.enabled_self_shadow_map = abs(mat.diffuse[3] - 0.98) > 1e-7 # consider precision error
         pmx_mat.vertex_count = mat.vertex_count

@@ -2,6 +2,7 @@
 from . import pmx
 from . import utils
 from . import bpyutils
+from . import shaders
 
 import math
 
@@ -689,7 +690,8 @@ class PMXImporter:
             mat.use_shadows = i.enabled_self_shadow
             mat.use_transparent_shadows = i.enabled_self_shadow
             mat.use_cast_buffer_shadows = i.enabled_self_shadow_map # only buffer shadows
-            if mat.alpha < 1.0 or mat.specular_alpha < 1.0 or i.texture != -1:
+            mat.game_settings.use_backface_culling = not i.is_double_sided
+            if mat.alpha < 1.0 or mat.specular_alpha < 1.0 or i.texture != -1 or not i.is_double_sided:
                 mat.use_transparency = True
                 mat.transparency_method = 'Z_TRANSPARENCY'
             self.__materialFaceCountTable.append(int(i.vertex_count/3))

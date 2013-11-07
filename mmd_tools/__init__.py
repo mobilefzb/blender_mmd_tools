@@ -202,6 +202,7 @@ class SetGLSLShading_Op(bpy.types.Operator):
         for i in filter(lambda x: x.type == 'MESH', context.scene.objects):
             for s in i.material_slots:
                 s.material.use_shadeless = False
+                shaders.setupSimpleShader(s.material)
         if len(list(filter(lambda x: x.is_mmd_glsl_light, context.scene.objects))) == 0:
             bpy.ops.object.lamp_add(type='HEMI', view_align=False, location=(0, 0, 0), rotation=(0, 0, 0))
             light = context.selected_objects[0]
@@ -224,6 +225,7 @@ class SetShadelessGLSLShading_Op(bpy.types.Operator):
         for i in filter(lambda x: x.type == 'MESH', context.scene.objects):
             for s in i.material_slots:
                 s.material.use_shadeless = True
+                shaders.setupSimpleShader(s.material)
         for i in filter(lambda x: x.is_mmd_glsl_light, context.scene.objects):
             context.scene.objects.unlink(i)
 
@@ -257,6 +259,8 @@ class ResetShading_Op(bpy.types.Operator):
         for i in filter(lambda x: x.type == 'MESH', context.scene.objects):
             for s in i.material_slots:
                 s.material.use_shadeless = False
+                s.material.use_nodes = True
+                s.material.node_tree.nodes.clear()
                 s.material.use_nodes = False
 
         for i in filter(lambda x: x.is_mmd_glsl_light, context.scene.objects):

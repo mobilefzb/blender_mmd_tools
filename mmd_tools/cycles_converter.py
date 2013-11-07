@@ -1,20 +1,8 @@
 # -*- coding: utf-8 -*-
+from . import shaders
+
 import bpy
 import mathutils
-
-def __exposeNodeTreeInput(in_socket, name, default_value, node_input, shader):
-    t = len(node_input.outputs)-1
-    i = node_input.outputs[t]
-    shader.links.new(in_socket, i)
-    if default_value is not None:
-        shader.inputs[t].default_value = default_value
-    shader.inputs[t].name = name
-
-def __exposeNodeTreeOutput(out_socket, name, node_output, shader):
-    t = len(node_output.inputs)-1
-    i = node_output.inputs[t]
-    shader.links.new(i, out_socket)
-    shader.outputs[t].name = name
 
 def create_MMDAlphaShader():
     bpy.context.scene.render.engine = 'CYCLES'
@@ -32,9 +20,9 @@ def create_MMDAlphaShader():
 
     shader.links.new(mix.inputs[1], trans.outputs['BSDF'])
 
-    __exposeNodeTreeInput(mix.inputs[2], 'Shader', None, node_input, shader)
-    __exposeNodeTreeInput(mix.inputs['Fac'], 'Alpha', 1.0, node_input, shader)
-    __exposeNodeTreeOutput(mix.outputs['Shader'], 'Shader', node_output, shader)
+    shaders.exposeNodeTreeInput(mix.inputs[2], 'Shader', None, node_input, shader)
+    shaders.exposeNodeTreeInput(mix.inputs['Fac'], 'Alpha', 1.0, node_input, shader)
+    shaders.exposeNodeTreeOutput(mix.outputs['Shader'], 'Shader', node_output, shader)
 
     return shader
 
@@ -57,11 +45,11 @@ def create_MMDBasicShader():
     shader.links.new(mix.inputs[1], dif.outputs['BSDF'])
     shader.links.new(mix.inputs[2], glo.outputs['BSDF'])
 
-    __exposeNodeTreeInput(dif.inputs['Color'], 'diffuse', [1.0, 1.0, 1.0, 1.0], node_input, shader)
-    __exposeNodeTreeInput(glo.inputs['Color'], 'glossy', [1.0, 1.0, 1.0, 1.0], node_input, shader)
-    __exposeNodeTreeInput(glo.inputs['Roughness'], 'glossy_rough', 0.0, node_input, shader)
-    __exposeNodeTreeInput(mix.inputs['Fac'], 'reflection', 0.02, node_input, shader)
-    __exposeNodeTreeOutput(mix.outputs['Shader'], 'shader', node_output, shader)
+    shaders.exposeNodeTreeInput(dif.inputs['Color'], 'diffuse', [1.0, 1.0, 1.0, 1.0], node_input, shader)
+    shaders.exposeNodeTreeInput(glo.inputs['Color'], 'glossy', [1.0, 1.0, 1.0, 1.0], node_input, shader)
+    shaders.exposeNodeTreeInput(glo.inputs['Roughness'], 'glossy_rough', 0.0, node_input, shader)
+    shaders.exposeNodeTreeInput(mix.inputs['Fac'], 'reflection', 0.02, node_input, shader)
+    shaders.exposeNodeTreeOutput(mix.outputs['Shader'], 'shader', node_output, shader)
 
     return shader
 
@@ -70,18 +58,8 @@ def convertToCyclesShader(obj):
     mmd_alpha_shader_grp = create_MMDAlphaShader()
 
     for i in obj.material_slots:
-        if i.material.use_nodes:
-            continue
-
         i.material.use_nodes = True
 
-        for j in i.material.node_tree.nodes:
-            print(j)
-        if any(filter(lambda x: isinstance(x, bpy.types.ShaderNodeGroup) and  x.node_tree.name in ['MMDBasicShader', 'MMDAlphaShader'], i.material.node_tree.nodes)):
-            continue
-
-
-        i.material.node_tree.links.clear()
         shader = i.material.node_tree.nodes.new('ShaderNodeGroup')
         shader.node_tree = mmd_basic_shader_grp
         texture = None
@@ -122,4 +100,5 @@ def convertToCyclesShader(obj):
             if i.material.alpha < 1.0:
                 alpha_shader.inputs[1].default_value = i.material.alpha
 
-        i.material.node_tree.links.new(i.material.node_tree.nodes['Material Output'].inputs['Surface'], outplug)
+        output = i.material.node_tree.nodes.new('ShaderNodeOutputMaterial')
+        i.material.node_tree.links.new(output.inputs['Surface'], outplug)
