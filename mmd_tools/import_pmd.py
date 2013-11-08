@@ -3,13 +3,30 @@
 from . import import_pmx
 from . import pmd
 from . import pmx
+from . import toon_textures
 
 import mathutils
 
+import bpy
 import os
 import re
 import copy
 import logging
+
+
+class TextureMap(dict):
+    def __init__(self, pmx_model, target_path):
+        super(TextureMap, self).__init__()
+        self.__pmx_model = pmx_model
+        self.__target_dir = os.path.dirname(target_path)
+
+    def addTexture(self, path):
+        if not self.__contains__(path):
+            logging.info('  Create pmx.Texture %s', path)
+            tex = pmx.Texture()
+            tex.path = os.path.normpath(os.path.join(self.__target_dir, path))
+            self.__pmx_model.textures.append(tex)
+            self.__setitem__(path, len(self.__pmx_model.textures) - 1)
 
 
 def import_pmd(**kwargs):
@@ -153,7 +170,7 @@ def import_pmd(**kwargs):
         applied_ik_bones.append(ik.bone)
     logging.info('----- Converted %d bones', len(pmd_model.iks))
 
-    texture_map = {}
+    texture_map = TextureMap(pmx_model, target_path)
     logging.info('')
     logging.info('------------------------------')
     logging.info(' Convert Materials')
@@ -170,23 +187,24 @@ def import_pmd(**kwargs):
         pmx_mat.vertex_count = mat.vertex_count
         if len(mat.texture_path) > 0:
             tex_path = mat.texture_path
-            if tex_path not in texture_map:
-                logging.info('  Create pmx.Texture %s', tex_path)
-                tex = pmx.Texture()
-                tex.path = os.path.normpath(os.path.join(os.path.dirname(target_path), tex_path))
-                pmx_model.textures.append(tex)
-                texture_map[tex_path] = len(pmx_model.textures) - 1
+            texture_map.addTexture(tex_path)
             pmx_mat.texture = texture_map[tex_path]
         if len(mat.sphere_path) > 0:
             tex_path = mat.sphere_path
-            if tex_path not in texture_map:
-                logging.info('  Create pmx.Texture %s', tex_path)
-                tex = pmx.Texture()
-                tex.path = os.path.normpath(os.path.join(os.path.dirname(target_path), tex_path))
-                pmx_model.textures.append(tex)
-                texture_map[tex_path] = len(pmx_model.textures) - 1
+            texture_map.addTexture(tex_path)
             pmx_mat.sphere_texture = texture_map[tex_path]
             pmx_mat.sphere_texture_mode = mat.sphere_mode
+        if len(pmd_model.toon_textures) > mat.toon_index >= 0:
+            tex_path = pmd_model.toon_textures[mat.toon_index]
+        else:
+            tex_path = toon_textures.makeToonTextureName(mat.toon_index) + '.bmp'
+        if os.path.isfile(bpy.path.resolve_ncase(os.path.join(os.path.dirname(target_path), tex_path))):
+            texture_map.addTexture(tex_path)
+            pmx_mat.is_shared_toon_texture = False
+            pmx_mat.toon_texture = texture_map[tex_path]
+        else:
+            pmx_mat.is_shared_toon_texture = True
+            pmx_mat.toon_texture = mat.toon_index
         pmx_model.materials.append(pmx_mat)
     logging.info('----- Converted %d materials', len(pmx_model.materials))
 

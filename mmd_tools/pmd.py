@@ -156,7 +156,7 @@ class Material:
         self.specular_intensity = fs.readFloat()
         self.specular = fs.readVector(3)
         self.ambient = fs.readVector(3)
-        self.toon_index = fs.readByte()
+        self.toon_index = fs.readSignedByte() # 0xFF=-1
         self.edge_flag = fs.readByte()
         self.vertex_count = fs.readUnsignedInt()
         tex_path = fs.readStr(20)

@@ -3,6 +3,7 @@ from . import pmx
 from . import utils
 from . import bpyutils
 from . import shaders
+from . import toon_textures
 
 import math
 
@@ -140,10 +141,10 @@ class PMXImporter:
 
         self.__textureTable = []
         for i in pmxModel.textures:
-            name = os.path.basename(i.path).split('.')[0]
+            name = os.path.basename(i.path.replace('\\', os.path.sep)).split('.')[0]
             tex = bpy.data.textures.new(name=name, type='IMAGE')
             try:
-                tex.image = bpy.data.images.load(filepath=i.path)
+                tex.image = bpy.data.images.load(filepath=bpy.path.resolve_ncase(i.path))
             except Exception:
                 logging.warning('failed to load %s', str(i.path))
             self.__textureTable.append(tex)
@@ -715,6 +716,13 @@ class PMXImporter:
                 texture_slot.texture_coords = 'NORMAL'
                 texture_slot.diffuse_color_factor = amount
                 texture_slot.blend_type = blend
+            if i.toon_texture != -1:
+                texture_slot = mat.texture_slots.add()
+                texture_slot.use = False
+                if i.is_shared_toon_texture:
+                    texture_slot.texture = toon_textures.getSharedToonTexture(i.toon_texture)
+                else:
+                    texture_slot.texture = self.__textureTable[i.toon_texture]
 
     def __importFaces(self):
         pmxModel = self.__model

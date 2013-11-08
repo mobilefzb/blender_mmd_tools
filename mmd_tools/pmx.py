@@ -438,6 +438,8 @@ class Model:
                 logging.debug('  Sphere Texture Mode: %d', m.sphere_texture_mode)
             else:
                 logging.debug('  Sphere Texture: None')
+            logging.debug('  Toon Texture Shared: %s', m.is_shared_toon_texture)
+            logging.debug('  Toon Texture Index: %d', m.toon_texture)
             logging.debug('')
 
         logging.info('----- Loaded %d  materials.', len(self.materials))
