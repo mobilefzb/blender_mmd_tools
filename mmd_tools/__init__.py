@@ -462,8 +462,10 @@ def register():
     bpy.utils.register_module(__name__)
 
 def unregister():
+    bpy.utils.unregister_class(MMDToolsPropertyGroup)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
 
+    del bpy.types.Scene.mmd_tools
     del bpy.types.Object.is_mmd_camera
     del bpy.types.Object.mmd_camera_location
     del bpy.types.Object.mmd_camera_rotation
