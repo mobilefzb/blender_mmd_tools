@@ -77,7 +77,7 @@ class ImportPmx_Op(bpy.types.Operator, bpy_extras.io_utils.ImportHelper):
     use_mipmap = bpy.props.BoolProperty(name='use MIP maps for UV textures', default=True)
     sph_blend_factor = bpy.props.FloatProperty(name='influence of .sph textures', default=1.0)
     spa_blend_factor = bpy.props.FloatProperty(name='influence of .spa textures', default=1.0)
-    save_log = bpy.props.BoolProperty(name='create a log file', default=False)
+    save_log = bpy.props.BoolProperty(name='create a log file', default=True)
     log_level = bpy.props.EnumProperty(items=[
             ('DEBUG', '4. DEBUG', '', 1),
             ('INFO', '3. INFO', '', 2),
